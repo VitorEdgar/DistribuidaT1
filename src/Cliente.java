@@ -8,62 +8,87 @@ import java.net.MulticastSocket;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.rmi.Naming;
+import java.rmi.RemoteException;
+import java.rmi.server.UnicastRemoteObject;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Scanner;
 import java.util.stream.Stream;
 
-public class Cliente {
-    public static void iniciar(InetAddress grupo, String nick, MulticastSocket socket) throws IOException {
+public class Cliente extends UnicastRemoteObject implements ClienteInterface {
+
+    private static final long serialVersionUID = 1L;
+
+    protected Cliente() throws RemoteException {
+    }
+
+    public static void iniciar(InetAddress grupo, String nick) throws IOException {
         System.out.println("Cliente");
         System.out.println(grupo.getHostAddress());
+        Scanner scanner = new Scanner(System.in);
 
-        ArrayList<String> arquivosDisponiveis = getArquivosDisponiveis();
+        try {
+            Naming.rebind(nick, new Cliente());
+            System.out.println("Cliente is ready.");
+        } catch (Exception e) {
+            System.out.println("Cliente failed: " + e);
+        }
 
-        InetAddress host;
+        String remoteHostName = grupo.getHostName();
+        String connectLocation = "//" + remoteHostName + "/Servidor";
 
-        byte[] saida = new byte[1024];
-        saida = ("[" + nick + "] " + " /all/ Ola").getBytes();
-        DatagramPacket pacote = new DatagramPacket(saida, saida.length, grupo, 5000);
-        socket.send(pacote);
+        ServidorInterface servidor = null;
+        try {
+            System.out.println("Connecting to Servidor at : " + connectLocation);
+            servidor = (ServidorInterface) Naming.lookup(connectLocation);
+        } catch (Exception e) {
+            System.out.println("Cliente failed: ");
+            e.printStackTrace();
+        }
+
+        HashMap<String,String> arquivosDisponiveis = getArquivosDisponiveis();
+
+        InetAddress ip = InetAddress.getLocalHost();
+
+        try {
+            servidor.registrar(nick,ip.toString(),arquivosDisponiveis);
+            System.out.println("Call to Servidor...");
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
+
+
         while (true) {
-            try {
-                byte[] entrada = new byte[1024];
-                pacote = new DatagramPacket(entrada, entrada.length);
-                socket.setSoTimeout(500);
-                socket.receive(pacote);
-                String recebido = new String(pacote.getData(), 0, pacote.getLength());
-
-                String vars[] = recebido.split("/");
-                try {
-                    System.out.println("Name: " + vars[1]);
-                    if (vars[1].equals(nick)) {
-                        System.out.println("Received: " + recebido);
-                        if (recebido.contains("Host")) {
-                            host = pacote.getAddress();
-
-                            System.out.println("Host=" + host.toString());
-                        }
-                        if ("fim".equals(recebido))
-                            break;
-                    }
-                } catch (ArrayIndexOutOfBoundsException e) {
-                }
-            } catch (IOException e) {
+            System.out.print("Solicitar arquivos (S) ou Sair(Q): ");
+            String acao = scanner.next();
+            switch (acao) {
+                case "S":
+                    System.out.print("Digitar nome do arquivo(Vazio para retornar disponiveis): ");
+                    String arquivo = scanner.next();
+                    servidor.solicitar(arquivo);
+                    break;
+                case "Q":
+                    servidor.sair(grupo.getHostName());
+                    break;
+                default:
+                    System.out.print("'" + acao + "' não é uma ação possivel");
+                    break;
             }
         }
     }
 
-    private static ArrayList<String> getArquivosDisponiveis() {
-        ArrayList<String> arquivosDisponiveis = new ArrayList<>();
+    private static HashMap<String,String> getArquivosDisponiveis() {
+        HashMap<String, String> arquivosDisponiveis = new HashMap<>();
 
         try (Stream<Path> walk = Files.walk(Paths.get("disponiveis"))) {
 
             walk.filter(Files::isRegularFile).forEach(arquivo -> {
-                        arquivosDisponiveis.add(arquivo.getFileName().toString());
                         try {
-                            arquivosDisponiveis.add(geraHash(arquivo.toString()));
+                            arquivosDisponiveis.put(arquivo.getFileName().toString(),geraHash(arquivo.toString()));
                         } catch (Exception e) {
                             e.printStackTrace();
                         }

@@ -4,45 +4,65 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
+import java.rmi.Naming;
+import java.rmi.RemoteException;
+import java.rmi.server.UnicastRemoteObject;
+import java.util.ArrayList;
+import java.util.HashMap;
 
-public class Servidor {
-    public static void iniciar(InetAddress grupo, String nick, MulticastSocket socket) throws IOException {
+public class Servidor extends UnicastRemoteObject implements ServidorInterface {
+
+    private static final long serialVersionUID = 1L;
+
+    private static volatile ArrayList<RegistroRecurso> recursos = new ArrayList<>();
+
+
+    protected Servidor() throws RemoteException {
+    }
+
+    public static void iniciar(InetAddress adress, String nick) throws IOException {
         System.out.println("Servidor");
-        System.out.println(grupo.getHostAddress());
+        System.out.println(adress.getHostAddress());
 
-        while (true) {
-            try {
-                byte[] entrada = new byte[1024];
-                DatagramPacket pacote = new DatagramPacket(entrada, entrada.length);
-                socket.setSoTimeout(500);
-                socket.receive(pacote);
-                String recebido = new String(pacote.getData(), 0, pacote.getLength());
-
-                String vars[] = recebido.split("/");
-                try {
-                    System.out.println("Name: " + vars[1]);
-                    if (vars[1].equalsIgnoreCase("all")) {
-                        System.out.println("Recebido " + vars[0] + " - " + pacote.getAddress());
-
-                        byte[] saida = new byte[1024];
-                        saida = ("[" + nick + "] "
-                                + " /"
-                                + vars[0].replace("[", "").replace("]", "").trim()
-                                + "/ Host").getBytes();
-
-                        pacote = new DatagramPacket(saida, saida.length, grupo, 5000);
-                        socket.send(pacote);
-
-                    }
-                    if (vars[1].equals(nick)) {
-                        System.out.println("Received: " + recebido);
-                        if ("fim".equals(recebido))
-                            break;
-                    }
-                } catch (ArrayIndexOutOfBoundsException e) {
-                }
-            } catch (IOException e) {
-            }
+        try {
+            Naming.rebind("Servidor", new Servidor());
+            System.out.println("Servidor is ready.");
+        } catch (Exception e) {
+            System.out.println("Servidor failed: " + e);
         }
+        while (true){
+
+        }
+    }
+
+
+    @Override
+    public int registrar(String cliente,
+                         String IPAdress,
+                         HashMap<String, String> arquivos) throws RemoteException {
+        arquivos.forEach( (key, value) -> {
+            RegistroRecurso registroRecurso = new RegistroRecurso();
+            registroRecurso.setIp(IPAdress);
+            registroRecurso.setHash(value);
+            registroRecurso.setNome(key);
+            registroRecurso.setNomeCliente(cliente);
+            recursos.add(registroRecurso);
+        });
+        return 0;
+    }
+
+    @Override
+    public int ping(String IPAdress) throws RemoteException {
+        return 0;
+    }
+
+    @Override
+    public int solicitar(String nomeArquivo) throws RemoteException {
+        return 0;
+    }
+
+    @Override
+    public int sair(String IPAdress) throws RemoteException {
+        return 0;
     }
 }

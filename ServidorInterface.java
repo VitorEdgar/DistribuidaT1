@@ -1,7 +1,8 @@
+import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.util.HashMap;
 
-public interface ServidorInterface {
+public interface ServidorInterface extends Remote {
 
     public int registrar(String nomeCliente, String IPAdress, HashMap<String, String> arquivos) throws RemoteException;
 

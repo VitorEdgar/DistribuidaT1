@@ -33,7 +33,7 @@ public class Cliente extends UnicastRemoteObject implements ClienteInterface {
             System.out.println("Cliente failed: " + e);
         }
 
-        String remoteHostName = grupo.getHostName();
+        String remoteHostName = grupo.getHostAddress();
         String connectLocation = "//" + remoteHostName + "/Servidor";
 
         ServidorInterface servidor = null;

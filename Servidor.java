@@ -5,12 +5,14 @@ import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class Servidor extends UnicastRemoteObject implements ServidorInterface {
 
     private static final long serialVersionUID = 1L;
 
-    private static volatile ArrayList<RegistroRecurso> recursos = new ArrayList<>();
+    private static volatile ArrayList<RegistroRecurso> recursos;
 
 
     protected Servidor() throws RemoteException {
@@ -19,6 +21,7 @@ public class Servidor extends UnicastRemoteObject implements ServidorInterface {
     public static void iniciar(InetAddress adress, String nick) throws IOException {
         System.out.println("Servidor");
         System.out.println(adress.getHostAddress());
+        recursos = new ArrayList<>();
 
         try {
             Naming.rebind("Servidor", new Servidor());
@@ -27,7 +30,11 @@ public class Servidor extends UnicastRemoteObject implements ServidorInterface {
             System.out.println("Servidor failed: " + e);
         }
         while (true){
-
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -36,6 +43,7 @@ public class Servidor extends UnicastRemoteObject implements ServidorInterface {
     public int registrar(String cliente,
                          String IPAdress,
                          HashMap<String, String> arquivos) throws RemoteException {
+        System.out.println("Registrando recursos de " + IPAdress);
         arquivos.forEach( (key, value) -> {
             RegistroRecurso registroRecurso = new RegistroRecurso();
             registroRecurso.setIp(IPAdress);
@@ -53,8 +61,11 @@ public class Servidor extends UnicastRemoteObject implements ServidorInterface {
     }
 
     @Override
-    public int solicitar(String nomeArquivo) throws RemoteException {
-        return 0;
+    public List<String> solicitar(String nomeArquivo) throws RemoteException {
+        System.out.println("Recursos Solicitados");
+        return recursos.stream()
+                .map(recurso -> recurso.getNome() +" - "+ recurso.getIp())
+                .collect(Collectors.toList());
     }
 
     @Override

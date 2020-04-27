@@ -11,6 +11,7 @@ import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Scanner;
 import java.util.stream.Stream;
 
@@ -62,9 +63,14 @@ public class Cliente extends UnicastRemoteObject implements ClienteInterface {
             String acao = scanner.next();
             switch (acao) {
                 case "S":
-                    System.out.print("Digitar nome do arquivo(Vazio para retornar disponiveis): ");
+                    System.out.print("Digitar nome do arquivo('T' para retornar disponiveis): ");
                     String arquivo = scanner.next();
-                    servidor.solicitar(arquivo);
+                    try {
+                        List<String> recursos = servidor.solicitar(arquivo);
+                        recursos.forEach(System.out::println);
+                    }catch (RemoteException e){
+                        e.printStackTrace();
+                    }
                     break;
                 case "Q":
                     servidor.sair(grupo.getHostName());

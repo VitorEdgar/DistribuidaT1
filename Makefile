@@ -9,7 +9,7 @@ Servidor.class: Servidor.java
 ServidorInterface.class: ServidorInterface.java
 			@javac ServidorInterface.java
 
-Cliente.class:	Cliente.java
+Cliente.class:	Cliente.java ClienteInterface.java
 			@javac Cliente.java
 
 ClienteInterface.class: ClienteInterface.java

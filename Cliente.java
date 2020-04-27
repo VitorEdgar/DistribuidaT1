@@ -1,10 +1,6 @@
-package src;
-
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.net.DatagramPacket;
 import java.net.InetAddress;
-import java.net.MulticastSocket;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -14,7 +10,6 @@ import java.rmi.server.UnicastRemoteObject;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Scanner;
 import java.util.stream.Stream;
@@ -118,5 +113,10 @@ public class Cliente extends UnicastRemoteObject implements ClienteInterface {
 
         return result.toString();
 
+    }
+
+    @Override
+    public int remover() throws RemoteException {
+        return 0;
     }
 }

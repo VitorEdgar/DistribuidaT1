@@ -1,5 +1,3 @@
-package src;
-
 public class RegistroRecurso {
 
     private String ip;

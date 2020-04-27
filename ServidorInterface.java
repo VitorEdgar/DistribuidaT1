@@ -1,5 +1,3 @@
-package src;
-
 import java.rmi.RemoteException;
 import java.util.HashMap;
 

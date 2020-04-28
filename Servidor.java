@@ -111,17 +111,19 @@ public class Servidor extends UnicastRemoteObject implements ServidorInterface {
         return recursos.stream()
                 .map(recurso -> recurso.getNome() + " - " + recurso.getNomeCliente())
                 .collect(Collectors.toList());
+
     }
 
     @Override
-    public String solicitarRecurso(String nomeArquivo) throws RemoteException {
+    public ClienteInterface solicitarRecurso(String nomeArquivo) throws RemoteException {
         System.out.println("Recurso Solicitado " + nomeArquivo);
-        return recursos.stream()
+        String rec = recursos.stream()
                 .filter(recurso -> recurso.getNome().equalsIgnoreCase(nomeArquivo))
-                .map(RegistroRecurso::getIp)
+                .map(RegistroRecurso::getNomeCliente)
                 .findFirst()
                 .orElse(null);
 
+        return clientes.get(rec).getCliente();
     }
 
     @Override

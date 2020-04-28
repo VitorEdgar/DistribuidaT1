@@ -3,6 +3,7 @@ import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.NetworkInterface;
 import java.rmi.Naming;
+import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.server.ServerNotActiveException;
 import java.rmi.server.UnicastRemoteObject;
@@ -19,6 +20,7 @@ public class Servidor extends UnicastRemoteObject implements ServidorInterface {
 
     private static volatile ArrayList<RegistroRecurso> recursos;
     private static volatile HashMap<String, RegistroCliente> clientes;
+    private static volatile String hostname;
 
 
     protected Servidor() throws RemoteException {
@@ -29,6 +31,7 @@ public class Servidor extends UnicastRemoteObject implements ServidorInterface {
         System.out.println(adress.getHostAddress());
         recursos = new ArrayList<>();
         clientes = new HashMap<>();
+        hostname = adress.getHostAddress();
 
         try {
             Naming.rebind("Servidor", new Servidor());
@@ -121,7 +124,7 @@ public class Servidor extends UnicastRemoteObject implements ServidorInterface {
     }
 
     @Override
-    public String solicitarRecurso(String nomeArquivo) throws RemoteException {
+    public ClienteInterface solicitarRecurso(String nomeArquivo) throws RemoteException {
         System.out.println("Recurso Solicitado " + nomeArquivo);
         String nome = recursos.stream()
                 .filter(recurso -> recurso.getNome().equalsIgnoreCase(nomeArquivo))
@@ -129,8 +132,13 @@ public class Servidor extends UnicastRemoteObject implements ServidorInterface {
                 .findFirst()
                 .orElse(null);
 
-        System.out.println(nome);
-        return nome;
+        try {
+            String connectLocation = "//" + hostname + "/"+nome;
+            return (ClienteInterface) Naming.lookup(connectLocation);
+        } catch (NotBoundException | MalformedURLException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     @Override

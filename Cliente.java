@@ -5,6 +5,8 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.Socket;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -17,6 +19,7 @@ import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
@@ -40,16 +43,15 @@ public class Cliente extends UnicastRemoteObject implements ClienteInterface {
         Scanner scanner = new Scanner(System.in);
 
         Cliente cliente = new Cliente();
-        Registry registry = LocateRegistry.getRegistry(grupo.getHostAddress(),1099);
+        Registry registry =LocateRegistry.getRegistry(grupo.getHostAddress(),1099);
 
-        System.out.println(registry.list());
-
+        Arrays.stream(registry.list()).forEach(reg -> System.out.println(reg.toString()));
 
         try {
-            registry.rebind(nick.trim(), cliente);
-            System.out.println(nick + " is ready.");
+            Naming.rebind("Cliente", cliente);
+            System.out.println("Cliente is ready.");
         } catch (Exception e) {
-            System.out.println(nick + " failed: " + e);
+            System.out.println("Cliente failed: " + e);
         }
 
         String remoteHostName = grupo.getHostAddress();
@@ -67,6 +69,10 @@ public class Cliente extends UnicastRemoteObject implements ClienteInterface {
         HashMap<String,String> arquivosDisponiveis = getArquivosDisponiveis();
 
         InetAddress ip = InetAddress.getLocalHost();
+        Socket socket = new Socket();
+        socket.connect(new InetSocketAddress("google.com", 80));
+        System.out.println(ip);
+        System.out.println(socket.getInetAddress());
 
         try {
             servidor.registrar(nick,ip.toString(),arquivosDisponiveis, cliente);

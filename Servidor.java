@@ -75,6 +75,7 @@ public class Servidor extends UnicastRemoteObject implements ServidorInterface {
         try {
             String IPAdress = getClientHost();
 
+            System.out.println(IPAdress);
             arquivos.forEach((key, value) -> {
                 RegistroRecurso registroRecurso = new RegistroRecurso();
                 registroRecurso.setIp(IPAdress);

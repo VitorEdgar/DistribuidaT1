@@ -30,6 +30,7 @@ public class Servidor extends UnicastRemoteObject implements ServidorInterface {
         clientes = new HashMap<>();
 
         try {
+            System.setProperty("java.rmi.server.hostname", adress.getHostAddress());
             Naming.rebind("Servidor", new Servidor());
             System.out.println("Servidor is ready.");
         } catch (Exception e) {
@@ -115,7 +116,7 @@ public class Servidor extends UnicastRemoteObject implements ServidorInterface {
     }
 
     @Override
-    public ClienteInterface solicitarRecurso(String nomeArquivo) throws RemoteException {
+    public String solicitarRecurso(String nomeArquivo) throws RemoteException {
         System.out.println("Recurso Solicitado " + nomeArquivo);
         String rec = recursos.stream()
                 .filter(recurso -> recurso.getNome().equalsIgnoreCase(nomeArquivo))
@@ -123,7 +124,7 @@ public class Servidor extends UnicastRemoteObject implements ServidorInterface {
                 .findFirst()
                 .orElse(null);
 
-        return clientes.get(rec).getCliente();
+        return clientes.get(rec).getIp();
     }
 
     @Override

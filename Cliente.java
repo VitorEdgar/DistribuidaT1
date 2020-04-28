@@ -47,6 +47,7 @@ public class Cliente extends UnicastRemoteObject implements ClienteInterface {
         Cliente cliente = new Cliente();
 
         try {
+            System.setProperty("java.rmi.server.hostname", grupo.getHostAddress());
             Naming.rebind("Cliente", cliente);
             System.out.println("Cliente is ready.");
         } catch (Exception e) {
@@ -99,12 +100,14 @@ public class Cliente extends UnicastRemoteObject implements ClienteInterface {
                     System.out.print("Digitar nome do arquivo: ");
                     String arquivo = scanner.next();
                     try {
-                        ClienteInterface peer = servidor.solicitarRecurso(arquivo);
+                        String peer = servidor.solicitarRecurso(arquivo);
                         if(peer == null){
                             System.out.println("Arquivo não existe");
                         }else {
                             try{
-                                peer.solicitarRecurso(arquivo,  cliente);
+                                Registry registry = LocateRegistry.getRegistry(peer,1099);
+                                ClienteInterface cli = (ClienteInterface) registry.lookup("Cliente");
+                                cli.solicitarRecurso(arquivo,  cliente);
                             } catch (Exception e) {
                                 System.out.println("Cliente failed: ");
                                 e.printStackTrace();

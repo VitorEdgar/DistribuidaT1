@@ -4,7 +4,10 @@ import java.net.MalformedURLException;
 import java.net.NetworkInterface;
 import java.rmi.Naming;
 import java.rmi.NotBoundException;
+import java.rmi.RMISecurityManager;
 import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
 import java.rmi.server.ServerNotActiveException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
@@ -33,6 +36,7 @@ public class Servidor extends UnicastRemoteObject implements ServidorInterface {
         clientes = new HashMap<>();
         hostname = adress.getHostAddress();
 
+
         try {
             Naming.rebind("Servidor", new Servidor());
             System.out.println("Servidor is ready.");
@@ -45,12 +49,7 @@ public class Servidor extends UnicastRemoteObject implements ServidorInterface {
                 clientes.entrySet().stream().forEach(entry -> {
                     if (System.currentTimeMillis() - entry.getValue().getUltimaInteracao() > 10000) {
                         eliminados.add(entry.getKey());
-                        try {
-                            System.out.println("Cliente " + entry.getKey() + " encerrado por timeout");
-                            entry.getValue().getCliente().remover();
-                        } catch (RemoteException e) {
-                            System.out.println("Cliente já estava removido");
-                        }
+                        System.out.println("Cliente " + entry.getKey() + " encerrado por timeout");
                     }
                 });
                 if (!eliminados.isEmpty()) {
@@ -73,14 +72,9 @@ public class Servidor extends UnicastRemoteObject implements ServidorInterface {
 
     @Override
     public String registrar(String nomeCliente,
-                         HashMap<String, String> arquivos,
-                         ClienteInterface clienteInterface) throws RemoteException {
+                            HashMap<String, String> arquivos) throws RemoteException {
         System.out.println("Registrando recursos de " + nomeCliente);
-        try {
-            Naming.rebind(nomeCliente, clienteInterface);
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-        }
+
         try {
             String IPAdress = getClientHost();
 
@@ -97,7 +91,6 @@ public class Servidor extends UnicastRemoteObject implements ServidorInterface {
             cliente.setIp(IPAdress);
             cliente.setNome(nomeCliente);
             cliente.setUltimaInteracao(System.currentTimeMillis());
-            cliente.setCliente(clienteInterface);
             clientes.put(nomeCliente, cliente);
             return IPAdress;
         } catch (ServerNotActiveException e) {
@@ -128,12 +121,14 @@ public class Servidor extends UnicastRemoteObject implements ServidorInterface {
         System.out.println("Recurso Solicitado " + nomeArquivo);
         String nome = recursos.stream()
                 .filter(recurso -> recurso.getNome().equalsIgnoreCase(nomeArquivo))
-                .map(RegistroRecurso::getNomeCliente)
+                .map(RegistroRecurso::getIp)
                 .findFirst()
                 .orElse(null);
 
         try {
-            String connectLocation = "//" + hostname + "/"+nome;
+            Registry reg = LocateRegistry.getRegistry(nome, 1099);
+            System.out.println(reg);
+            String connectLocation = "//" + nome + "/Cliente";
             return (ClienteInterface) Naming.lookup(connectLocation);
         } catch (NotBoundException | MalformedURLException e) {
             e.printStackTrace();

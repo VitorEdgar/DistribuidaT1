@@ -1,4 +1,4 @@
-all:    RegistroRecurso.class ClienteInterface.class ServidorInterface.class Cliente.class Servidor.class  Main.class
+all:    RegistroRecurso.class RegistroCliente.class ClienteInterface.class ServidorInterface.class Ping.class Cliente.class Servidor.class  Main.class
 
 Main.class: Main.java Servidor.class Cliente.class
 			@javac Main.java
@@ -18,5 +18,10 @@ ClienteInterface.class: ClienteInterface.java
 RegistroRecurso.class: RegistroRecurso.java
 			@javac RegistroRecurso.java
 
+RegistroCliente.class: RegistroCliente.java
+			@javac RegistroCliente.java
+
+Ping.class: Ping.java
+			@javac Ping.java
 clean:
 			@rm -rf *.class *~

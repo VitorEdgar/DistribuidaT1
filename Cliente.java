@@ -1,4 +1,8 @@
+import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.nio.file.Files;
@@ -10,8 +14,10 @@ import java.rmi.server.UnicastRemoteObject;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Optional;
 import java.util.Scanner;
 import java.util.stream.Stream;
 
@@ -19,16 +25,22 @@ public class Cliente extends UnicastRemoteObject implements ClienteInterface {
 
     private static final long serialVersionUID = 1L;
 
+    private static volatile HashMap<String,String>  arquivosDisponiveis;
+    private static volatile Boolean ligado;
+
     protected Cliente() throws RemoteException {
     }
 
     public static void iniciar(InetAddress grupo, String nick) throws IOException {
+        ligado = Boolean.TRUE;
         System.out.println("Cliente");
         System.out.println(grupo.getHostAddress());
         Scanner scanner = new Scanner(System.in);
 
+        Cliente cliente = new Cliente();
+
         try {
-            Naming.rebind(nick, new Cliente());
+            Naming.rebind(nick, cliente);
             System.out.println("Cliente is ready.");
         } catch (Exception e) {
             System.out.println("Cliente failed: " + e);
@@ -51,23 +63,48 @@ public class Cliente extends UnicastRemoteObject implements ClienteInterface {
         InetAddress ip = InetAddress.getLocalHost();
 
         try {
-            servidor.registrar(nick,ip.toString(),arquivosDisponiveis);
+            servidor.registrar(nick,ip.toString(),arquivosDisponiveis, cliente);
             System.out.println("Call to Servidor...");
         } catch (RemoteException e) {
             e.printStackTrace();
         }
 
 
-        while (true) {
-            System.out.print("Solicitar arquivos (S) ou Sair(Q): ");
+        Thread pingThread = new Thread(new Ping(servidor,  nick));
+        pingThread.start();
+
+        while (ligado) {
+            System.out.print("Solicitar arquivos Disponiveis (S), Solicitar Recurso (SR) ou Sair (Q): ");
             String acao = scanner.next();
+            if(!ligado) break;
             switch (acao) {
                 case "S":
-                    System.out.print("Digitar nome do arquivo('T' para retornar disponiveis): ");
+                    try {
+                        List<String> recursos = servidor.solicitar();
+                        recursos.forEach(System.out::println);
+                    }catch (RemoteException e){
+                        e.printStackTrace();
+                    }
+                    break;
+                case "SR":
+                    System.out.print("Digitar nome do arquivo: ");
                     String arquivo = scanner.next();
                     try {
-                        List<String> recursos = servidor.solicitar(arquivo);
-                        recursos.forEach(System.out::println);
+                        String recurso = servidor.solicitarRecurso(arquivo);
+                        if(recurso.length()<1){
+                            System.out.println("Arquivo não existe");
+                        }else {
+                            ClienteInterface peer = null;
+                            String connect = "//" + remoteHostName + "/" + recurso;
+                            try {
+                                System.out.println("Connecting to Peer at : " + connect);
+                                peer = (ClienteInterface) Naming.lookup(connect);
+                                peer.solicitarRecurso(arquivo,  cliente);
+                            } catch (Exception e) {
+                                System.out.println("Cliente failed: ");
+                                e.printStackTrace();
+                            }
+                        }
                     }catch (RemoteException e){
                         e.printStackTrace();
                     }
@@ -80,6 +117,8 @@ public class Cliente extends UnicastRemoteObject implements ClienteInterface {
                     break;
             }
         }
+        pingThread.interrupt();
+        System.exit(1);
     }
 
     private static HashMap<String,String> getArquivosDisponiveis() {
@@ -123,6 +162,54 @@ public class Cliente extends UnicastRemoteObject implements ClienteInterface {
 
     @Override
     public int remover() throws RemoteException {
+        System.out.println("Peer removido pelo host");
+        ligado = Boolean.FALSE;
+        return 0;
+    }
+
+    @Override
+    public int solicitarRecurso(String nome, ClienteInterface cliente) throws RemoteException {
+        System.out.println("Enviando arquivo");
+        try {
+            File file = new File("disponiveis/" + nome);
+            FileInputStream fis = new FileInputStream(file);
+
+            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            byte[] buf = new byte[1024];
+
+            try {
+                for (int readNum; (readNum = fis.read(buf)) != -1;) {
+                    bos.write(buf, 0, readNum); //no doubt here is 0
+
+                    System.out.println("read " + readNum + " bytes,");
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            byte[] bytes = bos.toByteArray();
+            cliente.receberArquivo(nome, bytes);
+
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    @Override
+    public int receberArquivo(String nome, byte[] recurso) throws RemoteException {
+        System.out.println("Recebendo arquivo");
+        System.out.println(recurso.length);
+        File someFile = new File(nome);
+        FileOutputStream fos = null;
+        try {
+            fos = new FileOutputStream(someFile);
+            fos.write(recurso);
+            fos.flush();
+            fos.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         return 0;
     }
 }

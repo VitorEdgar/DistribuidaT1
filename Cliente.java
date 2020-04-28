@@ -70,16 +70,9 @@ public class Cliente extends UnicastRemoteObject implements ClienteInterface {
         InetAddress ip = InetAddress.getLocalHost();
 
         try {
-            System.out.println(getClientHost());
-        }catch (Exception e){
-
-        }
-
-
-        try {
-            servidor.registrar(nick,getClientHost(),arquivosDisponiveis, cliente);
+            servidor.registrar(nick,arquivosDisponiveis, cliente);
             System.out.println("Call to Servidor...");
-        } catch (RemoteException | ServerNotActiveException e) {
+        } catch (RemoteException e) {
             e.printStackTrace();
         }
 

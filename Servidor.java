@@ -3,6 +3,7 @@ import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.rmi.Naming;
 import java.rmi.RemoteException;
+import java.rmi.server.ServerNotActiveException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
@@ -48,7 +49,7 @@ public class Servidor extends UnicastRemoteObject implements ServidorInterface {
                         }
                     }
                 });
-                if(!eliminados.isEmpty()) {
+                if (!eliminados.isEmpty()) {
                     List<RegistroRecurso> recursosEliminados = recursos.stream()
                             .filter(recurso -> eliminados.contains(recurso.getNomeCliente()))
                             .collect(Collectors.toList());
@@ -59,7 +60,7 @@ public class Servidor extends UnicastRemoteObject implements ServidorInterface {
                             )
                     );
                 }
-            }catch (ConcurrentModificationException e){
+            } catch (ConcurrentModificationException e) {
                 System.out.println("Erro ao eliminar: " + e);
             }
         }
@@ -68,24 +69,29 @@ public class Servidor extends UnicastRemoteObject implements ServidorInterface {
 
     @Override
     public int registrar(String nomeCliente,
-                         String IPAdress,
                          HashMap<String, String> arquivos,
                          ClienteInterface clienteInterface) throws RemoteException {
         System.out.println("Registrando recursos de " + nomeCliente);
-        arquivos.forEach((key, value) -> {
-            RegistroRecurso registroRecurso = new RegistroRecurso();
-            registroRecurso.setIp(IPAdress);
-            registroRecurso.setHash(value);
-            registroRecurso.setNome(key);
-            registroRecurso.setNomeCliente(nomeCliente);
-            recursos.add(registroRecurso);
-        });
-        RegistroCliente cliente = new RegistroCliente();
-        cliente.setIp(IPAdress);
-        cliente.setNome(nomeCliente);
-        cliente.setUltimaInteracao(System.currentTimeMillis());
-        cliente.setCliente(clienteInterface);
-        clientes.put(nomeCliente, cliente);
+        try {
+            String IPAdress = getClientHost();
+
+            arquivos.forEach((key, value) -> {
+                RegistroRecurso registroRecurso = new RegistroRecurso();
+                registroRecurso.setIp(IPAdress);
+                registroRecurso.setHash(value);
+                registroRecurso.setNome(key);
+                registroRecurso.setNomeCliente(nomeCliente);
+                recursos.add(registroRecurso);
+            });
+            RegistroCliente cliente = new RegistroCliente();
+            cliente.setIp(IPAdress);
+            cliente.setNome(nomeCliente);
+            cliente.setUltimaInteracao(System.currentTimeMillis());
+            cliente.setCliente(clienteInterface);
+            clientes.put(nomeCliente, cliente);
+        } catch (ServerNotActiveException e) {
+            e.printStackTrace();
+        }
         return 0;
     }
 

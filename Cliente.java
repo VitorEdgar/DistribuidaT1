@@ -67,7 +67,7 @@ public class Cliente extends UnicastRemoteObject implements ClienteInterface {
         String ip = null;
 
         try {
-            ip = servidor.registrar(nick,arquivosDisponiveis);
+            ip = servidor.registrar(nick,arquivosDisponiveis, cliente);
             System.out.println("Call to Servidor...");
         } catch (RemoteException e) {
             e.printStackTrace();

@@ -44,9 +44,6 @@ public class Cliente extends UnicastRemoteObject implements ClienteInterface {
         Scanner scanner = new Scanner(System.in);
 
         Cliente cliente = new Cliente();
-        Registry registry =LocateRegistry.getRegistry(grupo.getHostAddress(),1099);
-
-        Arrays.stream(registry.list()).forEach(reg -> System.out.println(reg.toString()));
 
         try {
             Naming.rebind("Cliente", cliente);
@@ -70,7 +67,12 @@ public class Cliente extends UnicastRemoteObject implements ClienteInterface {
         HashMap<String,String> arquivosDisponiveis = getArquivosDisponiveis();
 
         InetAddress ip = InetAddress.getLocalHost();
-        System.out.println(NetworkInterface.getNetworkInterfaces());
+
+        try {
+            System.out.println(getClientHost());
+        }catch (Exception e){
+
+        }
 
 
         try {

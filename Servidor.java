@@ -1,5 +1,6 @@
 import java.io.IOException;
 import java.net.InetAddress;
+import java.net.NetworkInterface;
 import java.rmi.Naming;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;

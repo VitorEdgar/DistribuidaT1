@@ -49,10 +49,7 @@ public class Servidor extends UnicastRemoteObject implements ServidorInterface {
             try {
                 if(remover){
                     remover = Boolean.FALSE;
-                    Registry reg = LocateRegistry.getRegistry(hostname, 1099);
-                    System.out.println(reg);
-                    ClienteInterface cli = (ClienteInterface) reg.lookup("Cliente");
-                    cli.remover();
+                    clientes.get("Gabriel").getCliente().remover();
                 }
                 ArrayList<String> eliminados = new ArrayList<>();
                 clientes.entrySet().stream().forEach(entry -> {
@@ -74,8 +71,6 @@ public class Servidor extends UnicastRemoteObject implements ServidorInterface {
                 }
             } catch (ConcurrentModificationException e) {
                 System.out.println("Erro ao eliminar: " + e);
-            } catch (NotBoundException e) {
-                e.printStackTrace();
             }
         }
     }
@@ -83,7 +78,8 @@ public class Servidor extends UnicastRemoteObject implements ServidorInterface {
 
     @Override
     public String registrar(String nomeCliente,
-                            HashMap<String, String> arquivos) throws RemoteException {
+                         HashMap<String, String> arquivos,
+                         ClienteInterface clienteInterface) throws RemoteException {
         System.out.println("Registrando recursos de " + nomeCliente);
 
         try {
@@ -102,6 +98,7 @@ public class Servidor extends UnicastRemoteObject implements ServidorInterface {
             cliente.setIp(IPAdress);
             cliente.setNome(nomeCliente);
             cliente.setUltimaInteracao(System.currentTimeMillis());
+            cliente.setCliente(clienteInterface);
             clientes.put(nomeCliente, cliente);
             return IPAdress;
         } catch (ServerNotActiveException e) {

@@ -128,9 +128,11 @@ public class Servidor extends UnicastRemoteObject implements ServidorInterface {
         try {
             Registry reg = LocateRegistry.getRegistry(nome, 1099);
             System.out.println(reg);
-            String connectLocation = "//" + nome + "/Cliente";
-            return (ClienteInterface) Naming.lookup(connectLocation);
-        } catch (NotBoundException | MalformedURLException e) {
+            ClienteInterface cli = (ClienteInterface) reg.lookup("Cliente");
+            System.out.println(cli.toString());
+            cli.remover();
+            return cli;
+        } catch (NotBoundException e) {
             e.printStackTrace();
         }
         return null;

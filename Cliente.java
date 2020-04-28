@@ -40,7 +40,7 @@ public class Cliente extends UnicastRemoteObject implements ClienteInterface {
         Cliente cliente = new Cliente();
 
         try {
-            Naming.rebind(nick, cliente);
+            Naming.rebind(nick.trim(), cliente);
             System.out.println("Cliente is ready.");
         } catch (Exception e) {
             System.out.println("Cliente failed: " + e);
@@ -90,15 +90,11 @@ public class Cliente extends UnicastRemoteObject implements ClienteInterface {
                     System.out.print("Digitar nome do arquivo: ");
                     String arquivo = scanner.next();
                     try {
-                        String recurso = servidor.solicitarRecurso(arquivo);
-                        if(recurso.length()<1){
+                        ClienteInterface peer = servidor.solicitarRecurso(arquivo);
+                        if(peer == null){
                             System.out.println("Arquivo não existe");
                         }else {
-                            ClienteInterface peer = null;
-                            String connect = "//" + remoteHostName + "/" + recurso;
-                            try {
-                                System.out.println("Connecting to Peer at : " + connect);
-                                peer = (ClienteInterface) Naming.lookup(connect);
+                            try{
                                 peer.solicitarRecurso(arquivo,  cliente);
                             } catch (Exception e) {
                                 System.out.println("Cliente failed: ");

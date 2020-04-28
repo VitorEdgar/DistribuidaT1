@@ -11,6 +11,7 @@ import java.nio.file.Paths;
 import java.rmi.Naming;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
@@ -39,16 +40,16 @@ public class Cliente extends UnicastRemoteObject implements ClienteInterface {
         Scanner scanner = new Scanner(System.in);
 
         Cliente cliente = new Cliente();
-        System.out.println(LocateRegistry.getRegistry(grupo.getHostAddress(),1099));
-        System.out.println(LocateRegistry.getRegistry(1099));
+        Registry registry = LocateRegistry.getRegistry(grupo.getHostAddress(),1099);
 
+        System.out.println(registry.list());
 
 
         try {
-            Naming.rebind("Cliente", cliente);
-            System.out.println("Cliente is ready.");
+            registry.rebind(nick.trim(), cliente);
+            System.out.println(nick + " is ready.");
         } catch (Exception e) {
-            System.out.println("Cliente failed: " + e);
+            System.out.println(nick + " failed: " + e);
         }
 
         String remoteHostName = grupo.getHostAddress();

@@ -10,6 +10,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.rmi.Naming;
 import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
 import java.rmi.server.UnicastRemoteObject;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
@@ -38,9 +39,13 @@ public class Cliente extends UnicastRemoteObject implements ClienteInterface {
         Scanner scanner = new Scanner(System.in);
 
         Cliente cliente = new Cliente();
+        System.out.println(LocateRegistry.getRegistry(grupo.getHostAddress(),1099));
+        System.out.println(LocateRegistry.getRegistry(1099));
+
+
 
         try {
-            Naming.rebind(nick.trim(), cliente);
+            Naming.rebind("Cliente", cliente);
             System.out.println("Cliente is ready.");
         } catch (Exception e) {
             System.out.println("Cliente failed: " + e);
@@ -72,6 +77,8 @@ public class Cliente extends UnicastRemoteObject implements ClienteInterface {
 
         Thread pingThread = new Thread(new Ping(servidor,  nick));
         pingThread.start();
+
+
 
         while (ligado) {
             System.out.print("Solicitar arquivos Disponiveis (S), Solicitar Recurso (SR) ou Sair (Q): ");

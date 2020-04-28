@@ -102,6 +102,7 @@ public class Cliente extends UnicastRemoteObject implements ClienteInterface {
                         }else {
                             try{
                                 System.out.println(peer.toString());
+                                Registry reg = LocateRegistry.getRegistry(grupo.getHostAddress(), 1099);
                                 peer.solicitarRecurso(arquivo,  cliente);
                             } catch (Exception e) {
                                 System.out.println("Cliente failed: ");

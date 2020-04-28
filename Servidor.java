@@ -36,6 +36,7 @@ public class Servidor extends UnicastRemoteObject implements ServidorInterface {
         recursos = new ArrayList<>();
         clientes = new HashMap<>();
         hostname = adress.getHostAddress();
+        remover = Boolean.FALSE;
 
 
         try {
@@ -47,6 +48,7 @@ public class Servidor extends UnicastRemoteObject implements ServidorInterface {
         while (true) {
             try {
                 if(remover){
+                    remover = Boolean.FALSE;
                     Registry reg = LocateRegistry.getRegistry(hostname, 1099);
                     System.out.println(reg);
                     ClienteInterface cli = (ClienteInterface) reg.lookup("Cliente");

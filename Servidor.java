@@ -1,5 +1,6 @@
 import java.io.IOException;
 import java.net.InetAddress;
+import java.net.MalformedURLException;
 import java.net.NetworkInterface;
 import java.rmi.Naming;
 import java.rmi.RemoteException;
@@ -73,6 +74,11 @@ public class Servidor extends UnicastRemoteObject implements ServidorInterface {
                          ClienteInterface clienteInterface) throws RemoteException {
         System.out.println("Registrando recursos de " + nomeCliente);
         try {
+            Naming.rebind(nomeCliente, clienteInterface);
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        }
+        try {
             String IPAdress = getClientHost();
 
             System.out.println(IPAdress);
@@ -117,14 +123,14 @@ public class Servidor extends UnicastRemoteObject implements ServidorInterface {
     @Override
     public String solicitarRecurso(String nomeArquivo) throws RemoteException {
         System.out.println("Recurso Solicitado " + nomeArquivo);
-        String ip = recursos.stream()
+        String nome = recursos.stream()
                 .filter(recurso -> recurso.getNome().equalsIgnoreCase(nomeArquivo))
-                .map(RegistroRecurso::getIp)
+                .map(RegistroRecurso::getNomeCliente)
                 .findFirst()
                 .orElse(null);
 
-        System.out.println(ip);
-        return ip;
+        System.out.println(nome);
+        return nome;
     }
 
     @Override

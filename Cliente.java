@@ -102,7 +102,7 @@ public class Cliente extends UnicastRemoteObject implements ClienteInterface {
                         }else {
                             try{
                                 System.out.println(peer);
-                                connectLocation = "//" + peer + "/Cliente";
+                                connectLocation = "//" + remoteHostName + "/"+peer;
                                 ClienteInterface cli = (ClienteInterface) Naming.lookup(connectLocation);
                                 cli.solicitarRecurso(arquivo,  cliente);
                             } catch (Exception e) {

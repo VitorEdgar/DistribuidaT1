@@ -15,6 +15,7 @@ import java.rmi.Naming;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
+import java.rmi.server.ServerNotActiveException;
 import java.rmi.server.UnicastRemoteObject;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
@@ -76,9 +77,9 @@ public class Cliente extends UnicastRemoteObject implements ClienteInterface {
 
 
         try {
-            servidor.registrar(nick,ip.toString(),arquivosDisponiveis, cliente);
+            servidor.registrar(nick,getClientHost(),arquivosDisponiveis, cliente);
             System.out.println("Call to Servidor...");
-        } catch (RemoteException e) {
+        } catch (RemoteException | ServerNotActiveException e) {
             e.printStackTrace();
         }
 

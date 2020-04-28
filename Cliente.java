@@ -6,6 +6,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.NetworkInterface;
 import java.net.Socket;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -69,10 +70,8 @@ public class Cliente extends UnicastRemoteObject implements ClienteInterface {
         HashMap<String,String> arquivosDisponiveis = getArquivosDisponiveis();
 
         InetAddress ip = InetAddress.getLocalHost();
-        Socket socket = new Socket();
-        socket.connect(new InetSocketAddress("google.com", 80));
-        System.out.println(ip);
-        System.out.println(socket.getInetAddress());
+        System.out.println(NetworkInterface.getNetworkInterfaces());
+
 
         try {
             servidor.registrar(nick,ip.toString(),arquivosDisponiveis, cliente);
@@ -104,12 +103,17 @@ public class Cliente extends UnicastRemoteObject implements ClienteInterface {
                     System.out.print("Digitar nome do arquivo: ");
                     String arquivo = scanner.next();
                     try {
-                        ClienteInterface peer = servidor.solicitarRecurso(arquivo);
-                        if(peer == null){
+                        String ipPeer = servidor.solicitarRecurso(arquivo);
+                        if(ipPeer == null){
                             System.out.println("Arquivo não existe");
                         }else {
-                            try{
-                                peer.solicitarRecurso(arquivo,  cliente);
+                            connectLocation = "//" + ipPeer + "/Cliente";
+
+                            ClienteInterface peer = null;
+                            try {
+                                System.out.println("Connecting to Servidor at : " + connectLocation);
+                                peer = (ClienteInterface) Naming.lookup(connectLocation);
+                                peer.solicitarRecurso(arquivo, cliente);
                             } catch (Exception e) {
                                 System.out.println("Cliente failed: ");
                                 e.printStackTrace();

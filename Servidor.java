@@ -30,7 +30,6 @@ public class Servidor extends UnicastRemoteObject implements ServidorInterface {
         clientes = new HashMap<>();
 
         try {
-            System.setProperty("java.rmi.server.hostname", adress.getHostAddress());
             Naming.rebind("Servidor", new Servidor());
             System.out.println("Servidor is ready.");
         } catch (Exception e) {

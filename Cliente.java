@@ -45,18 +45,10 @@ public class Cliente extends UnicastRemoteObject implements ClienteInterface {
         Cliente cliente = new Cliente();
 
         try {
-            Naming.rebind(nick, cliente);
+            Naming.rebind("Cliente", cliente);
         } catch (Exception e) {
             System.out.println("Cliente failed: " + e);
         }
-
-        Registry registry2 = LocateRegistry.getRegistry();
-        Registry registry1 = LocateRegistry.getRegistry(grupo.getHostAddress(), 1099);
-
-        System.out.println("Registro Local:");
-        Arrays.stream(registry2.list()).forEach(System.out::println);
-        System.out.println("Registro Servidor:");
-        Arrays.stream(registry1.list()).forEach(System.out::println);
 
         String remoteHostName = grupo.getHostAddress();
         String connectLocation = "//" + remoteHostName + "/Servidor";

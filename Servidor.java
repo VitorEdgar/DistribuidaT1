@@ -109,7 +109,7 @@ public class Servidor extends UnicastRemoteObject implements ServidorInterface {
     public List<String> solicitar() throws RemoteException {
         System.out.println("Recursos Solicitados");
         return recursos.stream()
-                .map(recurso -> recurso.getNome() + " - " + recurso.getNomeCliente())
+                .map(recurso -> recurso.getNome() + " - " + recurso.getHash() + " - " + recurso.getNomeCliente())
                 .collect(Collectors.toList());
 
     }

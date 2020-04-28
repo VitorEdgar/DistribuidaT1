@@ -68,7 +68,7 @@ public class Servidor extends UnicastRemoteObject implements ServidorInterface {
 
 
     @Override
-    public int registrar(String nomeCliente,
+    public String registrar(String nomeCliente,
                          HashMap<String, String> arquivos,
                          ClienteInterface clienteInterface) throws RemoteException {
         System.out.println("Registrando recursos de " + nomeCliente);
@@ -90,10 +90,11 @@ public class Servidor extends UnicastRemoteObject implements ServidorInterface {
             cliente.setUltimaInteracao(System.currentTimeMillis());
             cliente.setCliente(clienteInterface);
             clientes.put(nomeCliente, cliente);
+            return IPAdress;
         } catch (ServerNotActiveException e) {
             e.printStackTrace();
         }
-        return 0;
+        return "";
     }
 
     @Override

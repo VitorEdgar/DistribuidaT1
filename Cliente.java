@@ -67,10 +67,10 @@ public class Cliente extends UnicastRemoteObject implements ClienteInterface {
 
         HashMap<String,String> arquivosDisponiveis = getArquivosDisponiveis();
 
-        InetAddress ip = InetAddress.getLocalHost();
+        String ip = null;
 
         try {
-            servidor.registrar(nick,arquivosDisponiveis, cliente);
+            ip = servidor.registrar(nick,arquivosDisponiveis, cliente);
             System.out.println("Call to Servidor...");
         } catch (RemoteException e) {
             e.printStackTrace();
@@ -109,7 +109,7 @@ public class Cliente extends UnicastRemoteObject implements ClienteInterface {
                             try {
                                 System.out.println("Connecting to Servidor at : " + connectLocation);
                                 peer = (ClienteInterface) Naming.lookup(connectLocation);
-                                peer.solicitarRecurso(arquivo, cliente);
+                                peer.solicitarRecurso(arquivo);
                             } catch (Exception e) {
                                 System.out.println("Cliente failed: ");
                                 e.printStackTrace();
@@ -178,8 +178,26 @@ public class Cliente extends UnicastRemoteObject implements ClienteInterface {
     }
 
     @Override
-    public int solicitarRecurso(String nome, ClienteInterface cliente) throws RemoteException {
-        System.out.println("Enviando arquivo");
+    public int solicitarRecurso(String nome) throws RemoteException {
+
+
+        String connectLocation = null;
+        try {
+            connectLocation = "//" + getClientHost() + "/Cliente";
+        } catch (ServerNotActiveException e) {
+            e.printStackTrace();
+        }
+
+        System.out.println("Enviando arquivo para " + connectLocation);
+
+        ClienteInterface peer = null;
+        try {
+            System.out.println("Connecting to Servidor at : " + connectLocation);
+            peer = (ClienteInterface) Naming.lookup(connectLocation);
+        } catch (Exception e) {
+            System.out.println("Cliente failed: ");
+            e.printStackTrace();
+        }
         try {
             File file = new File("disponiveis/" + nome);
             FileInputStream fis = new FileInputStream(file);
@@ -198,7 +216,7 @@ public class Cliente extends UnicastRemoteObject implements ClienteInterface {
             }
 
             byte[] bytes = bos.toByteArray();
-            cliente.receberArquivo(nome, bytes);
+            peer.receberArquivo(nome, bytes);
 
         } catch (FileNotFoundException e) {
             e.printStackTrace();

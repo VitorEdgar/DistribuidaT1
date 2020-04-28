@@ -5,7 +5,7 @@ import java.util.List;
 
 public interface ServidorInterface extends Remote {
 
-    public int registrar(String nomeCliente, HashMap<String, String> arquivos, ClienteInterface cliente) throws RemoteException;
+    public String registrar(String nomeCliente, HashMap<String, String> arquivos, ClienteInterface cliente) throws RemoteException;
 
     public int ping(String IPAdress) throws RemoteException;
 

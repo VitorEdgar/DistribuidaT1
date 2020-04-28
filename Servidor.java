@@ -49,6 +49,7 @@ public class Servidor extends UnicastRemoteObject implements ServidorInterface {
             try {
                 if(remover){
                     remover = Boolean.FALSE;
+                    System.out.println("Remover");
                     clientes.get("Gabriel").getCliente().remover();
                 }
                 ArrayList<String> eliminados = new ArrayList<>();

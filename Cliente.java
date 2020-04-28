@@ -40,15 +40,12 @@ public class Cliente extends UnicastRemoteObject implements ClienteInterface {
 
     public static void iniciar(InetAddress grupo, String nick) throws IOException {
         ligado = Boolean.TRUE;
-        System.out.println("Cliente");
-        System.out.println(grupo.getHostAddress());
         Scanner scanner = new Scanner(System.in);
 
         Cliente cliente = new Cliente();
 
         try {
             Naming.rebind(nick, cliente);
-            System.out.println("Cliente is ready.");
         } catch (Exception e) {
             System.out.println("Cliente failed: " + e);
         }

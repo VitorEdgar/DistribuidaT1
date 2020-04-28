@@ -112,7 +112,7 @@ public class Servidor extends UnicastRemoteObject implements ServidorInterface {
                 .map(RegistroRecurso::getNomeCliente)
                 .findFirst();
         if(nomePeer.isPresent()) {
-            return clientes.get(nomePeer).getCliente();
+            return clientes.get(nomePeer.get()).getCliente();
         }
         return null;
     }

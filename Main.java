@@ -8,12 +8,13 @@ public class Main {
 
     public static void main(String[] args) throws IOException {
 
-        if(args.length < 3){
-            System.out.println("Usage: java Main <cliente/servidor> <machine> <nickname>");
+        if(args.length < 4){
+            System.out.println("Usage: java Main <cliente/servidor> <machine> <machine> <nickname>");
             System.exit(1);
         }
         InetAddress grupo = InetAddress.getByName(args[1]);
-        String nick = args[2];
+        InetAddress grupo2 = InetAddress.getByName(args[2]);
+        String nick = args[3];
 
         try {
             System.setProperty("java.rmi.server.hostname", args[1]);

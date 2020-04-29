@@ -47,13 +47,6 @@ public class Servidor extends UnicastRemoteObject implements ServidorInterface {
         }
         while (true) {
             try {
-                if(remover){
-                    remover = Boolean.FALSE;
-                    Registry reg = LocateRegistry.getRegistry(hostname, 1099);
-                    System.out.println(reg);
-                    ClienteInterface cli = (ClienteInterface) Naming.lookup("Cliente");
-                    cli.remover();
-                }
                 ArrayList<String> eliminados = new ArrayList<>();
                 clientes.entrySet().stream().forEach(entry -> {
                     if (System.currentTimeMillis() - entry.getValue().getUltimaInteracao() > 10000) {
@@ -74,8 +67,6 @@ public class Servidor extends UnicastRemoteObject implements ServidorInterface {
                 }
             } catch (ConcurrentModificationException e) {
                 System.out.println("Erro ao eliminar: " + e);
-            } catch (NotBoundException e) {
-                e.printStackTrace();
             }
         }
     }
@@ -138,8 +129,15 @@ public class Servidor extends UnicastRemoteObject implements ServidorInterface {
                 .findFirst()
                 .orElse(null);
 
-        hostname = nome;
-        remover = true;
+        try {
+            Registry reg = LocateRegistry.getRegistry(nome, 1099);
+            System.out.println(reg);
+            ClienteInterface cli = (ClienteInterface) reg.lookup("Cliente");
+            System.out.println(cli.toString());
+            return cli;
+        } catch (NotBoundException e) {
+            e.printStackTrace();
+        }
         return null;
     }
 

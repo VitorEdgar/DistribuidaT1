@@ -25,7 +25,7 @@ public class Main {
         }
 
         if (args[0].equalsIgnoreCase("cliente")) {
-            Cliente.iniciar(grupo, nick);
+            Cliente.iniciar(grupo2, nick);
         } else {
             Servidor.iniciar(grupo, nick);
         }

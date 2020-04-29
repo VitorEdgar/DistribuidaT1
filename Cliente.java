@@ -38,7 +38,7 @@ public class Cliente extends UnicastRemoteObject implements ClienteInterface {
     protected Cliente() throws RemoteException {
     }
 
-    public static void iniciar(InetAddress grupo, String nick) throws IOException {
+    public static void iniciar(InetAddress grupo) throws IOException {
         ligado = Boolean.TRUE;
         Scanner scanner = new Scanner(System.in);
 
@@ -67,14 +67,14 @@ public class Cliente extends UnicastRemoteObject implements ClienteInterface {
         String ip = null;
 
         try {
-            ip = servidor.registrar(nick,arquivosDisponiveis, cliente);
+            ip = servidor.registrar(arquivosDisponiveis, cliente);
             System.out.println("Call to Servidor...");
         } catch (RemoteException e) {
             e.printStackTrace();
         }
 
 
-        Thread pingThread = new Thread(new Ping(servidor,  nick));
+        Thread pingThread = new Thread(new Ping(servidor,  ip));
         pingThread.start();
 
 
@@ -203,7 +203,7 @@ public class Cliente extends UnicastRemoteObject implements ClienteInterface {
     public int receberArquivo(String nome, byte[] recurso) throws RemoteException {
         System.out.println("Recebendo arquivo");
         System.out.println(recurso.length);
-        File someFile = new File(nome);
+        File someFile = new File("disponiveis/" + nome);
         FileOutputStream fos = null;
         try {
             fos = new FileOutputStream(someFile);

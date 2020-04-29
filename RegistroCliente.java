@@ -1,19 +1,11 @@
 public class RegistroCliente {
 
-    private String nome;
+
     private String ip;
     private Long ultimaInteracao;
     private ClienteInterface cliente;
 
     public RegistroCliente() {
-    }
-
-    public String getNome() {
-        return nome;
-    }
-
-    public void setNome(String nome) {
-        this.nome = nome;
     }
 
     public String getIp() {

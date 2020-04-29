@@ -3,7 +3,6 @@ public class RegistroRecurso {
     private String ip;
     private String hash;
     private String nome;
-    private String nomeCliente;
 
     public RegistroRecurso() {
     }
@@ -30,13 +29,5 @@ public class RegistroRecurso {
 
     public void setNome(String nome) {
         this.nome = nome;
-    }
-
-    public String getNomeCliente() {
-        return nomeCliente;
-    }
-
-    public void setNomeCliente(String nomeCliente) {
-        this.nomeCliente = nomeCliente;
     }
 }

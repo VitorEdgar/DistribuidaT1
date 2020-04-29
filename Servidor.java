@@ -1,20 +1,12 @@
 import java.io.IOException;
-import java.net.InetAddress;
-import java.net.MalformedURLException;
-import java.net.NetworkInterface;
 import java.rmi.Naming;
-import java.rmi.NotBoundException;
-import java.rmi.RMISecurityManager;
 import java.rmi.RemoteException;
-import java.rmi.registry.LocateRegistry;
-import java.rmi.registry.Registry;
 import java.rmi.server.ServerNotActiveException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class Servidor extends UnicastRemoteObject implements ServidorInterface {
@@ -23,20 +15,14 @@ public class Servidor extends UnicastRemoteObject implements ServidorInterface {
 
     private static volatile ArrayList<RegistroRecurso> recursos;
     private static volatile HashMap<String, RegistroCliente> clientes;
-    private static volatile String hostname;
-    private static volatile Boolean remover;
 
 
     protected Servidor() throws RemoteException {
     }
 
-    public static void iniciar(InetAddress adress, String nick) throws IOException {
-        System.out.println("Servidor");
-        System.out.println(adress.getHostAddress());
+    public static void iniciar() throws IOException {
         recursos = new ArrayList<>();
         clientes = new HashMap<>();
-        hostname = adress.getHostAddress();
-        remover = Boolean.FALSE;
 
 
         try {
@@ -56,12 +42,12 @@ public class Servidor extends UnicastRemoteObject implements ServidorInterface {
                 });
                 if (!eliminados.isEmpty()) {
                     List<RegistroRecurso> recursosEliminados = recursos.stream()
-                            .filter(recurso -> eliminados.contains(recurso.getNomeCliente()))
+                            .filter(recurso -> eliminados.contains(recurso.getIp()))
                             .collect(Collectors.toList());
                     eliminados.forEach(eliminado -> clientes.remove(eliminado));
                     recursosEliminados.forEach(eliminado ->
                             recursos.removeIf(recurso ->
-                                    recurso.getNomeCliente().equalsIgnoreCase(eliminado.getNomeCliente())
+                                    recurso.getIp().equalsIgnoreCase(eliminado.getIp())
                             )
                     );
                 }
@@ -73,13 +59,14 @@ public class Servidor extends UnicastRemoteObject implements ServidorInterface {
 
 
     @Override
-    public String registrar(String nomeCliente,
-                            HashMap<String, String> arquivos,
+    public String registrar(HashMap<String, String> arquivos,
                             ClienteInterface clienteInterface) throws RemoteException {
-        System.out.println("Registrando recursos de " + nomeCliente);
+
 
         try {
             String IPAdress = getClientHost();
+
+            System.out.println("Registrando recursos de " + IPAdress);
 
             System.out.println(IPAdress);
             arquivos.forEach((key, value) -> {
@@ -87,15 +74,13 @@ public class Servidor extends UnicastRemoteObject implements ServidorInterface {
                 registroRecurso.setIp(IPAdress);
                 registroRecurso.setHash(value);
                 registroRecurso.setNome(key);
-                registroRecurso.setNomeCliente(nomeCliente);
                 recursos.add(registroRecurso);
             });
             RegistroCliente cliente = new RegistroCliente();
             cliente.setIp(IPAdress);
-            cliente.setNome(nomeCliente);
             cliente.setUltimaInteracao(System.currentTimeMillis());
             cliente.setCliente(clienteInterface);
-            clientes.put(nomeCliente, cliente);
+            clientes.put(IPAdress, cliente);
             return IPAdress;
         } catch (ServerNotActiveException e) {
             e.printStackTrace();
@@ -104,9 +89,9 @@ public class Servidor extends UnicastRemoteObject implements ServidorInterface {
     }
 
     @Override
-    public int ping(String nick) throws RemoteException {
-        System.out.println("Peer " + nick + " Ping");
-        RegistroCliente cliente = clientes.get(nick);
+    public int ping(String ip) throws RemoteException {
+        System.out.println("Peer " + ip + " Ping");
+        RegistroCliente cliente = clientes.get(ip);
         cliente.setUltimaInteracao(System.currentTimeMillis());
         return 0;
     }
@@ -115,7 +100,7 @@ public class Servidor extends UnicastRemoteObject implements ServidorInterface {
     public List<String> solicitar() throws RemoteException {
         System.out.println("Recursos Solicitados");
         return recursos.stream()
-                .map(recurso -> recurso.getNome() + " - " + recurso.getHash() + " - " + recurso.getNomeCliente())
+                .map(recurso -> recurso.getNome() + " - " + recurso.getHash() + " - " + recurso.getIp())
                 .collect(Collectors.toList());
 
     }
@@ -123,22 +108,13 @@ public class Servidor extends UnicastRemoteObject implements ServidorInterface {
     @Override
     public ClienteInterface solicitarRecurso(String nomeArquivo) throws RemoteException {
         System.out.println("Recurso Solicitado " + nomeArquivo);
-        String nome = recursos.stream()
+        String ip = recursos.stream()
                 .filter(recurso -> recurso.getNome().equalsIgnoreCase(nomeArquivo))
                 .map(RegistroRecurso::getIp)
                 .findFirst()
                 .orElse(null);
 
-        try {
-            Registry reg = LocateRegistry.getRegistry(nome, 1099);
-            System.out.println(reg);
-            ClienteInterface cli = (ClienteInterface) reg.lookup("Cliente");
-            System.out.println(cli.toString());
-            return cli;
-        } catch (NotBoundException e) {
-            e.printStackTrace();
-        }
-        return null;
+        return clientes.get(ip).getCliente();
     }
 
     @Override

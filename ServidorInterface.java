@@ -12,6 +12,4 @@ public interface ServidorInterface extends Remote {
     public List<String> solicitar() throws RemoteException;
 
     public ClienteInterface solicitarRecurso(String nomeArquivo) throws RemoteException;
-
-    public int sair(String IPAdress) throws RemoteException;
 }

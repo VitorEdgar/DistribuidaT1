@@ -7,8 +7,8 @@ public class Main {
 
     public static void main(String[] args) throws IOException {
 
-        if(args.length < 3){
-            System.out.println("Usage: java Main <cliente/servidor> <machine-local> <machine-host> <nickname>");
+        if (args.length < 3) {
+            System.out.println("Usage: java Main <cliente/servidor> <ip-local> <ip-servidor> <nickname>");
             System.exit(1);
         }
 
@@ -16,6 +16,7 @@ public class Main {
 
 
         try {
+            //Deve se cuidar para definir o hostlocal, senão acaba ocorrendo erro de conexão ao tentar interagir com o arquivo
             System.setProperty("java.rmi.server.hostname", args[1]);
             LocateRegistry.createRegistry(1099);
             System.out.println("java RMI registry created.");

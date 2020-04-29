@@ -1,5 +1,3 @@
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.rmi.RemoteException;
 
 public class Ping implements Runnable {
@@ -14,7 +12,7 @@ public class Ping implements Runnable {
 
     @Override
     public void run() {
-        while (true){
+        while (true) {
             try {
                 servidor.ping(nick);
             } catch (RemoteException e) {

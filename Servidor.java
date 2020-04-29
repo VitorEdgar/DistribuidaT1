@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class Servidor extends UnicastRemoteObject implements ServidorInterface {
@@ -34,12 +35,14 @@ public class Servidor extends UnicastRemoteObject implements ServidorInterface {
         while (true) {
             try {
                 ArrayList<String> eliminados = new ArrayList<>();
+                //Verifica se algum cliente não mandou uma msg para o servidor por mais de 10 segundos
                 clientes.entrySet().stream().forEach(entry -> {
                     if (System.currentTimeMillis() - entry.getValue().getUltimaInteracao() > 10000) {
                         eliminados.add(entry.getKey());
-                        System.out.println("Cliente " + entry.getKey() + " encerrado por timeout");
+                        System.out.println("Cliente " + entry.getKey() + " encerrado");
                     }
                 });
+                //Caso algum cliente não tenha enviado, seus recursos são removidos do servidor
                 if (!eliminados.isEmpty()) {
                     List<RegistroRecurso> recursosEliminados = recursos.stream()
                             .filter(recurso -> eliminados.contains(recurso.getIp()))
@@ -57,7 +60,6 @@ public class Servidor extends UnicastRemoteObject implements ServidorInterface {
         }
     }
 
-
     @Override
     public String registrar(HashMap<String, String> arquivos,
                             ClienteInterface clienteInterface) throws RemoteException {
@@ -68,7 +70,8 @@ public class Servidor extends UnicastRemoteObject implements ServidorInterface {
 
             System.out.println("Registrando recursos de " + IPAdress);
 
-            System.out.println(IPAdress);
+
+            //Para cada arquivo do cliente é gravado um registro de recurso no servidor
             arquivos.forEach((key, value) -> {
                 RegistroRecurso registroRecurso = new RegistroRecurso();
                 registroRecurso.setIp(IPAdress);
@@ -76,6 +79,7 @@ public class Servidor extends UnicastRemoteObject implements ServidorInterface {
                 registroRecurso.setNome(key);
                 recursos.add(registroRecurso);
             });
+            //Registra o Cliente em um HashMap<IP, Objeto de Registro do cliente>
             RegistroCliente cliente = new RegistroCliente();
             cliente.setIp(IPAdress);
             cliente.setUltimaInteracao(System.currentTimeMillis());
@@ -90,7 +94,6 @@ public class Servidor extends UnicastRemoteObject implements ServidorInterface {
 
     @Override
     public int ping(String ip) throws RemoteException {
-        System.out.println("Peer " + ip + " Ping");
         RegistroCliente cliente = clientes.get(ip);
         cliente.setUltimaInteracao(System.currentTimeMillis());
         return 0;
@@ -99,6 +102,7 @@ public class Servidor extends UnicastRemoteObject implements ServidorInterface {
     @Override
     public List<String> solicitar() throws RemoteException {
         System.out.println("Recursos Solicitados");
+        //Retorna uma lista de todos recursos
         return recursos.stream()
                 .map(recurso -> recurso.getNome() + " - " + recurso.getHash() + " - " + recurso.getIp())
                 .collect(Collectors.toList());
@@ -108,17 +112,14 @@ public class Servidor extends UnicastRemoteObject implements ServidorInterface {
     @Override
     public ClienteInterface solicitarRecurso(String nomeArquivo) throws RemoteException {
         System.out.println("Recurso Solicitado " + nomeArquivo);
-        String ip = recursos.stream()
+        //Ao solicitar um recurso especifico o programa Retorna um objeto remoto de onde este se encontra
+        Optional<String> ip = recursos.stream()
                 .filter(recurso -> recurso.getNome().equalsIgnoreCase(nomeArquivo))
                 .map(RegistroRecurso::getIp)
-                .findFirst()
-                .orElse(null);
-
-        return clientes.get(ip).getCliente();
-    }
-
-    @Override
-    public int sair(String IPAdress) throws RemoteException {
-        return 0;
+                .findFirst();
+        if (ip.isPresent()) {
+            return clientes.get(ip).getCliente();
+        }
+        return null;
     }
 }

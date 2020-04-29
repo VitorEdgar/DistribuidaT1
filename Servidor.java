@@ -40,6 +40,11 @@ public class Servidor extends UnicastRemoteObject implements ServidorInterface {
                     if (System.currentTimeMillis() - entry.getValue().getUltimaInteracao() > 10000) {
                         eliminados.add(entry.getKey());
                         System.out.println("Cliente " + entry.getKey() + " encerrado");
+                        try{
+                            clientes.get(entry.getKey()).getCliente().remover();
+                        } catch (RemoteException e) {
+                            System.out.println("Cliente já desconectado");
+                        }
                     }
                 });
                 //Caso algum cliente não tenha enviado, seus recursos são removidos do servidor

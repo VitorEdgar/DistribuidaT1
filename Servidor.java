@@ -123,7 +123,7 @@ public class Servidor extends UnicastRemoteObject implements ServidorInterface {
                 .map(RegistroRecurso::getIp)
                 .findFirst();
         if (ip.isPresent()) {
-            return clientes.get(ip).getCliente();
+            return clientes.get(ip.get()).getCliente();
         }
         return null;
     }
